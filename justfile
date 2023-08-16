@@ -5,22 +5,29 @@ stagedir := "target/universal/stage/bin"
 test:
     sbt test
 
+# Build the native executable for the frontend.
 build:
     sbt stage
 
 alias b := build
 
+# Turn a sigi expression mentioned as argument into MLIR.
 exprToMlir EXPR:
     echo "{{EXPR}}" | {{stagedir}}/sigi-to-mlir -
 
+# Turn a sigi file mentioned as argument into MLIR.
 sigiToMlir *ARGS:
     {{stagedir}}/sigi-to-mlir {{ARGS}}
 
+# Interpret the given Sigi file.
 interpretSigi *ARGS:
     {{stagedir}}/interpret-sigi {{ARGS}}
 
+# Launch the repl.
 repl:
     {{stagedir}}/repl
+
+
 
 # setup commands
 
