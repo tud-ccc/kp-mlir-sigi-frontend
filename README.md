@@ -38,7 +38,8 @@ After running `just b`, the following commands are available:
   - `just sigiToMlir -` takes input from standard input,
   - `just sigiToMlir fileName.sigi` takes input from a file,
   - `just exprToMlir "sigi code"`: convenience wrapper to compile a single Sigi expression;
-- `just interpretSigi [ - | FILE ]`: execute the interpreter on a Sigi file or standard input. This can be used to check that compiled code behaves like the interpreter. Arguments are like those of `sigiToMlir`.
+- `just interpretFile [ - | FILE ]`: execute the interpreter on a Sigi file or standard input. This can be used to check that compiled code behaves like the interpreter. Arguments are like those of `sigiToMlir`.
+- `just interpretExpr "sigi code"`: convenience for running the interpreter on a single expression.
 
 Those commands use the binaries built with `just b`. Don't forget to run `just b` to update the binaries when you make a change.
 

@@ -20,8 +20,12 @@ sigiToMlir *ARGS:
     {{stagedir}}/sigi-to-mlir {{ARGS}}
 
 # Interpret the given Sigi file.
-interpretSigi *ARGS:
+interpretFile *ARGS:
     {{stagedir}}/interpret-sigi {{ARGS}}
+
+# Interpret the given Sigi expression.
+interpretExpr EXPR:
+    echo "{{EXPR}}" | {{stagedir}}/interpret-sigi -
 
 # Launch the repl.
 repl:
