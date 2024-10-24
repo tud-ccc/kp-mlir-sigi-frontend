@@ -295,6 +295,7 @@ package types {
 
   object StackType {
     def pushOne(d: KDataType): StackType = StackType(produces = List(d))
+    def popOne(d: KDataType): StackType = StackType(consumes = List(d))
 
     private def symmetric(types: List[KDataType]): StackType = StackType(types, types)
 

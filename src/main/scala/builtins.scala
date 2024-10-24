@@ -151,6 +151,12 @@ package builtins {
           println(s"env: ${env.varsToString}")
           Right(env)
       },
+      stackFun("showast", StackType.popOne(KBool)) {
+        case VBool(a) :: tl =>
+          println(s"Print term AST: " + (if (a) "on" else "off"))
+          showTermAst = a // set global
+          Right(tl)
+      },
       stackFun("typeof", StackType.generic1(StackType.symmetric1)) {
         case stack@(hd :: _) =>
           println("typeof: " + hd.dataType)

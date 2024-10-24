@@ -36,6 +36,8 @@ package repl {
       case _ =>
   }
 
+  var showTermAst: Boolean = false
+
   @main
   def repl(): Unit = {
     val scanner = scala.io.StdIn
@@ -47,6 +49,9 @@ package repl {
         val produced = after.stack.take(e.stackTy.produces.length).reverseIterator.mkString(", ")
         println(e.stackTy)
         println(s"$consumed -> $produced".trim)
+        if (showTermAst) {
+          println("term ast: " + e.erase)
+        }
 
       case TFunDef(id, ty, _, _) => println(s"Defined function ${id.sourceName}: $ty")
       case TBlock(st) =>
