@@ -406,7 +406,7 @@ case class MlirSymbol(name: String) {
       "-" -> "arith.subi",
       "*" -> "arith.muli",
       "/" -> "arith.divi",
-      "%" -> "arith.modi",
+      "%" -> "arith.remsi",
       "<=" -> "arith.cmpi \"sle\",",
       ">=" -> "arith.cmpi \"sge\",",
       "<" -> "arith.cmpi \"slt\",",
