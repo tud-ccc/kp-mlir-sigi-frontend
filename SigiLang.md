@@ -73,11 +73,13 @@ Outside of expressions, is also possible to declare a function with the
 syntax `"let" id (":" stackTy)? "=" expr ";;"`. For instance this is the
 definition of a function that squares its argument:
 
-    # this is a new function named "square"
-    let square: int -> int = dup (*);;
+``` reason
+// this is a new function named "square"
+let square: int -> int = dup (*);;
 
-    # this is the same, but the type is inferred
-    let square = dup (*);;
+// this is the same, but the type is inferred
+let square = dup (*);;
+```
 
 ## Semantics
 
@@ -155,7 +157,7 @@ only be written on explicit function declarations (those that use the
 if the function is referred to by other functions declared before it
 (forward references).
 
-``` sml
+``` reason
 let a = 1;; // a: -> int
 let b = a;; // b: -> int
 let c = d;; // illegal forward reference to d, because d has no type annotation
@@ -254,7 +256,9 @@ boils down to the idea that stack types may contain row variables, which
 can unify with an entire list of data types. For example, the
 higher-order builtin `apply` has type
 
-    apply: 'S, ('S -> 'R) -> 'R
+``` reason
+apply: 'S, ('S -> 'R) -> 'R
+```
 
 where `'S` and `'R` are row variables. Given the term `(\+) apply` for
 instance, we will infer a row variable substitution `'S := int, int`,
@@ -297,26 +301,28 @@ Builtin type constructors: - `bool`, a boolean type - `int`, a signed
 
 Builtin functions, apart from operators:
 
-    # Discard the top of the stack
-    pop: 'a ->
-    # Duplicate the top of the stack
-    pop: 'a -> 'a, 'a
-    # Swap the two values at the top of the stack
-    swap: 'a, 'b -> 'b, 'a
-    # Select a value using a boolean
-    cond: bool, 'a, 'a -> 'a
-    # Invoke a function value that is at the top of the stack
-    apply: 'S, ('S -> 'R) -> 'R
-    # Compose the two functions on the top of the stack
-    compose: ('A -> 'B), ('B -> 'C) -> ('A -> 'C)
-    # Quote the value on top of the stack
-    quote: 'a -> (-> 'a)
-    # Pop the top of the stack and print it with a newline
-    show: 'a ->
-    # Print the top of the stack without popping it
-    pp: 'a -> 'a
-    # Do nothing
-    pass: 'S -> 'S
+``` reason
+// Discard the top of the stack
+pop: 'a ->
+// Duplicate the top of the stack
+pop: 'a -> 'a, 'a
+// Swap the two values at the top of the stack
+swap: 'a, 'b -> 'b, 'a
+// Select a value using a boolean
+cond: bool, 'a, 'a -> 'a
+// Invoke a function value that is at the top of the stack
+apply: 'S, ('S -> 'R) -> 'R
+// Compose the two functions on the top of the stack
+compose: ('A -> 'B), ('B -> 'C) -> ('A -> 'C)
+// Quote the value on top of the stack
+quote: 'a -> (-> 'a)
+// Pop the top of the stack and print it with a newline
+show: 'a ->
+// Print the top of the stack without popping it
+pp: 'a -> 'a
+// Do nothing
+pass: 'S -> 'S
+```
 
 ## WIP
 

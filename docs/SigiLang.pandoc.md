@@ -39,7 +39,7 @@ Sigi is an expression language. The core language has the following expressions:
 ```abnf
 expr ::= literal                 ; function that pushes a literal value 
        | expr expr               ; function composition 
-       | id | "(" op ")"         ; function reference 
+       | id | "(" op ")"         ; function application
        | "{" expr "}"            ; quotation, ie push a closure 
        | "->" "\"? id ";"        ; pop the top of the stack and give it a name
 ```
@@ -52,19 +52,19 @@ Additional expression forms:
 
 - Writing `\id` or `\op` is shorthand for quotation. E.g. `\double` is the same as `{ double }`, and `\+` is the same as `{ (+) }`
 - It is possible to compact several `-> id;` variable declarations into one pop expression, like `-> x, \f, y;`.
-These ids are popped from the stack right-to-left: the top of the stack is always written on the right. This is equivalent to `-> y; -> \f; -> x;`
+These values are popped from the stack right-to-left: the top of the stack is always written on the right. This is equivalent to `-> y; -> \f; -> x;`
 - Arithmetic expressions are supported with the usual precedence rules. They map to function application, eg
   - `1 + 2` is the same as `1 2 (+)`
   - `1 + 2 * 3` is the same as `1 2 3 (*) (+)`
-- if/elif/else are used to build conditionals. For instance `if (a) b else c` is mapped to `a { b } { c } cond apply`, where `cond` and `apply` are [language builtins](#builtins).
+- `if`/`elif`/`else` can be used to build conditional expressions. For instance `if (a) b else c` is mapped to `a { b } { c } cond apply`, where `cond` and `apply` are [language builtins](#builtins).
 
 Outside of expressions, is also possible to declare a function with the syntax `"let" id (":" stackTy)? "=" expr ";;"`.
 For instance this is the definition of a function that squares its argument:
-```
-# this is a new function named "square"
+``` reason
+// this is a new function named "square"
 let square: int -> int = dup (*);;
 
-# this is the same, but the type is inferred
+// this is the same, but the type is inferred
 let square = dup (*);;
 ```
 
@@ -123,7 +123,7 @@ Sigi does not usually require any type annotations.
 Type annotations can only be written on explicit function declarations (those that use the `let` keyword).
 They are only required if the function is recursive, or if the function is referred to by other functions declared before it (forward references).
 
-```sml
+``` reason
 let a = 1;; // a: -> int
 let b = a;; // b: -> int
 let c = d;; // illegal forward reference to d, because d has no type annotation
@@ -176,7 +176,7 @@ For instance, in a vacuum, `1` has type `-> int` and `-> x;` has type `'a ->`. I
 #### Row polymorphic types
 
 Note that the typing of the composition rule as described here ignores *row variables* for conciseness. Row polymorphism allows typing higher order functions and provides greater flexibility to the type system. It boils down to the idea that stack types may contain row variables, which can unify with an entire list of data types. For example, the higher-order builtin `apply` has type
-```
+``` reason
 apply: 'S, ('S -> 'R) -> 'R
 ```
 where `'S` and `'R` are row variables. Given the term `(\+) apply` for instance, we will infer a row variable substitution `'S := int, int`, `'R := int` , so that the ground type of `apply` is `int, int, (int, int -> int) -> int`. The type of `(\+) apply` is therefore `int, int -> int` (in fact the type of `\f apply` is always the type of `f`).
@@ -206,26 +206,26 @@ Builtin type constructors:
 - `int`, a signed 32-bit integer
 
 Builtin functions, apart from operators:
-```
-# Discard the top of the stack
+``` reason
+// Discard the top of the stack
 pop: 'a ->
-# Duplicate the top of the stack
+// Duplicate the top of the stack
 pop: 'a -> 'a, 'a
-# Swap the two values at the top of the stack
+// Swap the two values at the top of the stack
 swap: 'a, 'b -> 'b, 'a
-# Select a value using a boolean
+// Select a value using a boolean
 cond: bool, 'a, 'a -> 'a
-# Invoke a function value that is at the top of the stack
+// Invoke a function value that is at the top of the stack
 apply: 'S, ('S -> 'R) -> 'R
-# Compose the two functions on the top of the stack
+// Compose the two functions on the top of the stack
 compose: ('A -> 'B), ('B -> 'C) -> ('A -> 'C)
-# Quote the value on top of the stack
+// Quote the value on top of the stack
 quote: 'a -> (-> 'a)
-# Pop the top of the stack and print it with a newline
+// Pop the top of the stack and print it with a newline
 show: 'a ->
-# Print the top of the stack without popping it
+// Print the top of the stack without popping it
 pp: 'a -> 'a
-# Do nothing
+// Do nothing
 pass: 'S -> 'S
 ```
 
