@@ -10,16 +10,26 @@ and first-class function values.
 
 ### Lexical analysis
 
-Sigi tokens are the following: - identifiers: `[a-zA-Z]\w*`, eg `a1`,
-`a_2` - type variables: `'[a-z][a-z0-9]*`, eg `'a`, `'var0` - row
-variables: `'[A-Z][A-Z0-9]*`, eg `'S`, `'R0` - operators: - binary: -
-arithmetic: `+`, `-`, `*`, `/`, `%` - comparison: `=`, `<>`, `<=`, `<`,
-`>`, `>=` - unary: - arithmetic: `+`, `-` - bitwise: `~` (bitwise NOT on
-integer) - boolean: `!` (boolean NOT) - literals: - numbers (decimal
-only): `0|[1-9][0-9]*` - booleans: `true`, `false` - strings: double
-quoted, like `"abc"`, `""`. Supported escapes are `\n`, `\r`, `\"`,
-`\\`. - keywords: `if`, `elif`, `else`, `let` - separators: `;;`, and
-usual punctuation
+Sigi tokens are the following:
+
+- identifiers: `[a-zA-Z]\w*`, eg `a1`, `a_2`
+- type variables: `'[a-z][a-z0-9]*`, eg `'a`, `'var0`
+- row variables: `'[A-Z][A-Z0-9]*`, eg `'S`, `'R0`
+- operators:
+  - binary:
+    - arithmetic: `+`, `-`, `*`, `/`, `%`
+    - comparison: `=`, `<>`, `<=`, `<`, `>`, `>=`
+  - unary:
+    - arithmetic: `+`, `-`
+    - bitwise: `~` (bitwise NOT on integer)
+    - boolean: `!` (boolean NOT)
+- literals:
+  - numbers (decimal only): `0|[1-9][0-9]*`
+  - booleans: `true`, `false`
+  - strings: double quoted, like `"abc"`, `""`. Supported escapes are
+    `\n`, `\r`, `\"`, `\\`.
+- keywords: `if`, `elif`, `else`, `let`
+- separators: `;;`, and usual punctuation
 
 Comments are end-of-line and start with `#` or `//`.
 
@@ -28,12 +38,12 @@ Comments are end-of-line and start with `#` or `//`.
 Sigi is an expression language. The core language has the following
 expressions:
 
-``` ebnf
-expr := literal                 // function that pushes a literal value
-      | expr expr               // function composition
-      | id | "(" op ")"         // function reference
-      | "{" expr "}"            // quotation, ie push a closure
-      | "->" "\"? id ";"        // pop the top of the stack and give it a name
+``` abnf
+expr ::= literal                 ; function that pushes a literal value 
+       | expr expr               ; function composition 
+       | id | "(" op ")"         ; function reference 
+       | "{" expr "}"            ; quotation, ie push a closure 
+       | "->" "\"? id ";"        ; pop the top of the stack and give it a name
 ```
 
 The language has richer syntax for convenience, all of which reduces to
@@ -43,18 +53,21 @@ implicit stack). Expressions have a static type that describes these
 effects. Typing and evaluation rules are described in the semantics
 section below.
 
-Additional expression forms: - Writing `\id` or `\op` is shorthand for
-quotation. Eg `\double` is the same as `{ double }`, `\+` is the same as
-`{ (+) }` - It is possible to compact several `-> id;` variable
-declarations into one pop expression, like `-> x, \f, y;`. These ids are
-popped from the stack right-to-left: the top of the stack is always
-written on the right. This is equivalent to `-> y; -> \f; -> x;` -
-Arithmetic expressions are supported with the usual precedence rules.
-They map to function application, eg - `1 + 2` is the same as
-`1 2 (+)` - `1 + 2 * 3` is the same as `1 2 3 (*) (+)` - if/elif/else
-are used to build conditionals. For instance `if (a) b else c` is mapped
-to `a { b } { c } cond apply`, where `cond` and `apply` are [language
-builtins](#builtins).
+Additional expression forms:
+
+- Writing `\id` or `\op` is shorthand for quotation. E.g. `\double` is
+  the same as `{ double }`, and `\+` is the same as `{ (+) }`
+- It is possible to compact several `-> id;` variable declarations into
+  one pop expression, like `-> x, \f, y;`. These ids are popped from the
+  stack right-to-left: the top of the stack is always written on the
+  right. This is equivalent to `-> y; -> \f; -> x;`
+- Arithmetic expressions are supported with the usual precedence rules.
+  They map to function application, eg
+  - `1 + 2` is the same as `1 2 (+)`
+  - `1 + 2 * 3` is the same as `1 2 3 (*) (+)`
+- if/elif/else are used to build conditionals. For instance
+  `if (a) b else c` is mapped to `a { b } { c } cond apply`, where
+  `cond` and `apply` are [language builtins](#builtins).
 
 Outside of expressions, is also possible to declare a function with the
 syntax `"let" id (":" stackTy)? "=" expr ";;"`. For instance this is the
@@ -73,16 +86,17 @@ definition of a function that squares its argument:
 #### Data types
 
 Data types are the types of runtime values, i.e., values that can be
-placed on the stack. Data types include: - simple types: they are simply
-the name of a type, eg `int`. - parameterized types: the application of
-a type constructor to type arguments. For instance `int list` is the
-application of the `list` type constructor to the type argument `int`.
-Technically, simple types are parameterized types whose type ctors
-require zero arguments. - function types: the type of a function that
-transforms the top of the stack. For instance `int -> str` requires an
-`int` on the top of the stack and replaces it with an `str`. Function
-types can be understood as [stack types](#stack-types) when the function
-is applied.
+placed on the stack. Data types include:
+
+- simple types: they are simply the name of a type, eg `int`.
+- parameterized types: the application of a type constructor to type
+  arguments. For instance `int list` is the application of the `list`
+  type constructor to the type argument `int`. Technically, simple types
+  are parameterized types whose type ctors require zero arguments.
+- function types: the type of a function that transforms the top of the
+  stack. For instance `int -> str` requires an `int` on the top of the
+  stack and replaces it with an `str`. Function types can be understood
+  as [stack types](#stack-types) when the function is applied.
 
 Additionally, type variables, e.g. `'a` or `'b`, stand for an unknown
 data type and can occur anywhere a data type is expected. Type variables
@@ -124,13 +138,13 @@ This is the classic subtyping rule for function types, whereby subtypes
 of a function type are the function types of more general functions, and
 supertypes are more specific. The substitution thing has to do with
 generic functions. The type
-$`s = \mathord{\text{'}}a, \mathord{\text{'}}b \to \mathord{\text{'}}a`$
+$`s = \mathord{\mathrm{'a}}, \mathord{\mathrm{'b}} \to \mathord{\mathrm{'a}}`$
 is more general than
-$`t = \mathord{\text{'}}c, \mathord{\text{'}}c \to \mathord{\text{'}}c`$,
+$`t = \mathord{\mathrm{'c}}, \mathord{\mathrm{'c}} \to \mathord{\mathrm{'c}}`$,
 because $`s`$ can accept more input types. That means it should hold
 that $`s <: t`$. To show this, we define a substitution $`\theta`$ that
-maps both $`\mathord{\text{'}}a`$ and $`\mathord{\text{'}}b`$ to
-$`\mathord{\text{'}}c`$. It then holds that $`\theta s = t`$, so
+maps both $`\mathord{\mathrm{'a}}`$ and $`\mathord{\mathrm{'b}}`$ to
+$`\mathord{\mathrm{'c}}`$. It then holds that $`\theta s = t`$, so
 $`\theta s <: t`$ and so $`s <: t`$.
 
 #### Type inference
@@ -141,10 +155,12 @@ only be written on explicit function declarations (those that use the
 if the function is referred to by other functions declared before it
 (forward references).
 
-    let a = 1;; // a: -> int
-    let b = a;; // b: -> int
-    let c = d;; // illegal forward reference to d, because d has no type annotation
-    let d = d;; // illegal recursive call, because d has no type annotation
+``` sml
+let a = 1;; // a: -> int
+let b = a;; // b: -> int
+let c = d;; // illegal forward reference to d, because d has no type annotation
+let d = d;; // illegal recursive call, because d has no type annotation
+```
 
 Type inference is performed while type-checking expressions as explained
 in the following section.
@@ -156,14 +172,14 @@ in the following section.
 >   $`\mathtt{\lbrace e \rbrace} : \to t`$.
 > - `-> x;` pops the value on top of the stack and binds it to a name in
 >   the enclosing scope. The type of this expression is
->   $`\mathord{\text{'}}a \to`$, where $`\mathord{\text{'}}a`$ is a
+>   $`\mathord{\mathrm{'a}} \to`$, where $`\mathord{\mathrm{'a}}`$ is a
 >   fresh type variable.
 > - `-> \x;` pops the value on top of the stack and binds it to a name
 >   in the enclosing scope. The name binds to a function of maximally
->   general type $`(\mathord{\text{'}}A \to \mathord{\text{'}}B)`$ (see
->   [row polymorphism](#row-polymorphic-types)). The type of this
+>   general type $`(\mathord{\mathrm{'A}} \to \mathord{\mathrm{'B}})`$
+>   (see [row polymorphism](#row-polymorphic-types)). The type of this
 >   expression is therefore
->   $`(\mathord{\text{'}}A \to \mathord{\text{'}}B) \to`$.
+>   $`(\mathord{\mathrm{'A}} \to \mathord{\mathrm{'B}}) \to`$.
 > - `id` resolves a name in the enclosing scope. Names resolve to a
 >   *value*, a value having a data type, not a stack type.
 >   - If `id` refers to a function of type $`\mathbf{c}\to\mathbf{p}`$,
@@ -249,7 +265,7 @@ the type of `f`).
 
 Note that a function type $`(c)_n \rightarrow (p)_m`$, where no $`c_i`$
 or $`p_i`$ is a row variable, is canonicalised to
-$`\mathord{\text{'}}S, (c)_n \rightarrow \mathord{\text{'}}S, (p)_m`$.
+$`\mathord{\mathrm{'S}}, (c)_n \rightarrow \mathord{\mathrm{'S}}, (p)_m`$.
 The introduced row variable represents “the rest of the stack”, which in
 a trivial function type like this is just preserved.
 

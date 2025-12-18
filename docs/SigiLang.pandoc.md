@@ -10,6 +10,7 @@ The language features type inference and first-class function values.
 ### Lexical analysis
 
 Sigi tokens are the following:
+
 - identifiers: `[a-zA-Z]\w*`, eg `a1`, `a_2`
 - type variables: `'[a-z][a-z0-9]*`, eg `'a`, `'var0`
 - row variables: `'[A-Z][A-Z0-9]*`, eg `'S`, `'R0`
@@ -33,12 +34,14 @@ Comments are end-of-line and start with `#` or `//`.
 ### Expressions
 
 Sigi is an expression language. The core language has the following expressions:
-```ebnf
-expr := literal                 // function that pushes a literal value
-      | expr expr               // function composition
-      | id | "(" op ")"         // function reference
-      | "{" expr "}"            // quotation, ie push a closure
-      | "->" "\"? id ";"        // pop the top of the stack and give it a name
+
+
+```abnf
+expr ::= literal                 ; function that pushes a literal value 
+       | expr expr               ; function composition 
+       | id | "(" op ")"         ; function reference 
+       | "{" expr "}"            ; quotation, ie push a closure 
+       | "->" "\"? id ";"        ; pop the top of the stack and give it a name
 ```
 The language has richer syntax for convenience, all of which reduces to the above expression forms.
 Each expression is a function from a stack to another stack (or equivalently it performs side effects on an implicit stack).
@@ -46,7 +49,8 @@ Expressions have a static type that describes these effects.
 Typing and evaluation rules are described in the semantics section below.
 
 Additional expression forms:
-- Writing `\id` or `\op` is shorthand for quotation. Eg `\double` is the same as `{ double }`, `\+` is the same as `{ (+) }`
+
+- Writing `\id` or `\op` is shorthand for quotation. E.g. `\double` is the same as `{ double }`, and `\+` is the same as `{ (+) }`
 - It is possible to compact several `-> id;` variable declarations into one pop expression, like `-> x, \f, y;`.
 These ids are popped from the stack right-to-left: the top of the stack is always written on the right. This is equivalent to `-> y; -> \f; -> x;`
 - Arithmetic expressions are supported with the usual precedence rules. They map to function application, eg
@@ -74,6 +78,7 @@ let square = dup (*);;
 
 Data types are the types of runtime values, i.e., values that can be placed on the stack. 
 Data types include:
+
 - simple types: they are simply the name of a type, eg `int`.
 - parameterized types: the application of a type constructor to type arguments.
 For instance `int list` is the application of the `list` type constructor to the type
@@ -118,7 +123,7 @@ Sigi does not usually require any type annotations.
 Type annotations can only be written on explicit function declarations (those that use the `let` keyword).
 They are only required if the function is recursive, or if the function is referred to by other functions declared before it (forward references).
 
-```
+```sml
 let a = 1;; // a: -> int
 let b = a;; // b: -> int
 let c = d;; // illegal forward reference to d, because d has no type annotation
