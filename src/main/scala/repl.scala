@@ -121,13 +121,13 @@ package repl {
   object VBool {
     def apply(boolean: Boolean): VPrimitive[Boolean] = VPrimitive(KBool, boolean)
 
-    def unapply(prim: VPrimitive[_]): Option[Boolean] = prim match
+    def unapply(prim: VPrimitive[?]): Option[Boolean] = prim match
       case VPrimitive(KBool, v) => Some(v)
       case _ => None
   }
   object VNum {
     def apply(i: Int): VPrimitive[Int] = VPrimitive(KInt, i)
-    def unapply(prim: VPrimitive[_]): Option[Int] = prim match
+    def unapply(prim: VPrimitive[?]): Option[Int] = prim match
       case VPrimitive(KInt, v) => Some(v)
       case _ => None
   }
@@ -165,7 +165,6 @@ package repl {
 
     val Default: Env = defaultEnv(builtins.BuiltinSpecs)
     val DefaultReplEnv: Env = defaultEnv(builtins.BuiltinSpecs ++ builtins.ReplBuiltinSpecs)
-    ,
   }
 
   def applyValue(env: Env)(value: KValue): EvalResult =

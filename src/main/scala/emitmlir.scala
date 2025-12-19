@@ -42,8 +42,8 @@ case class MlirSymbol(name: String) {
 }
 
   class IdGenerator[T](start: Int, maker: String => T) {
-    private var seqNumber: Int = _
-    private var curImpl: T = _
+    private var seqNumber: Int = scala.compiletime.uninitialized
+    private var curImpl: T = scala.compiletime.uninitialized
     reset()
 
     def cur: T = curImpl

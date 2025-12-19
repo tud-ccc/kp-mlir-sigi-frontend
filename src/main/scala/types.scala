@@ -172,7 +172,7 @@ package types {
 
   class KInferenceVar(val origin: KTypeVar, private val ctx: TypingCtx) extends KDataType {
     private val bounds: mutable.Map[BoundKind, mutable.Set[KStackTypeItem]] = mutable.Map()
-    private var _instantiation: KDataType = _
+    private var _instantiation: KDataType = scala.compiletime.uninitialized
 
     def instantiation: KDataType = _instantiation
 
@@ -214,7 +214,7 @@ package types {
   }
 
   class KRowIVar(val origin: KRowVar, val ctx: TypingCtx) extends KStackTypeItem {
-    private var _instantiation: List[KStackTypeItem] = _
+    private var _instantiation: List[KStackTypeItem] = scala.compiletime.uninitialized
     val aliases: mutable.Set[KRowIVar] = mutable.Set()
     // sequential number
     private[sigi] val id = {
@@ -493,8 +493,8 @@ package types {
     /** A ground substitution substitutes inference variables with their instantiation. */
     def groundSubst(eliminateIvars: Boolean): TySubst =
       new TySubst {
-        private[this] val tvGen = KTypeVar.typeVarGenerator()
-        private[this] val rvGen = KRowVar.rowVarGenerator()
+        private val tvGen = KTypeVar.typeVarGenerator()
+        private val rvGen = KRowVar.rowVarGenerator()
 
         override protected def substIVar(ivar: KInferenceVar): KDataType =
           if ivar.instantiation != null
