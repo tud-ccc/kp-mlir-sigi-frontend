@@ -41,7 +41,7 @@ expressions:
 ``` abnf
 expr ::= literal                 ; function that pushes a literal value 
        | expr expr               ; function composition 
-       | id | "(" op ")"         ; function reference 
+       | id | "(" op ")"         ; function application
        | "{" expr "}"            ; quotation, ie push a closure 
        | "->" "\"? id ";"        ; pop the top of the stack and give it a name
 ```
@@ -58,16 +58,16 @@ Additional expression forms:
 - Writing `\id` or `\op` is shorthand for quotation. E.g. `\double` is
   the same as `{ double }`, and `\+` is the same as `{ (+) }`
 - It is possible to compact several `-> id;` variable declarations into
-  one pop expression, like `-> x, \f, y;`. These ids are popped from the
-  stack right-to-left: the top of the stack is always written on the
+  one pop expression, like `-> x, \f, y;`. These values are popped from
+  the stack right-to-left: the top of the stack is always written on the
   right. This is equivalent to `-> y; -> \f; -> x;`
 - Arithmetic expressions are supported with the usual precedence rules.
   They map to function application, eg
   - `1 + 2` is the same as `1 2 (+)`
   - `1 + 2 * 3` is the same as `1 2 3 (*) (+)`
-- if/elif/else are used to build conditionals. For instance
-  `if (a) b else c` is mapped to `a { b } { c } cond apply`, where
-  `cond` and `apply` are [language builtins](#builtins).
+- `if`/`elif`/`else` can be used to build conditional expressions. For
+  instance `if (a) b else c` is mapped to `a { b } { c } cond apply`,
+  where `cond` and `apply` are [language builtins](#builtins).
 
 Outside of expressions, is also possible to declare a function with the
 syntax `"let" id (":" stackTy)? "=" expr ";;"`. For instance this is the
@@ -171,17 +171,17 @@ in the following section.
 
 > - `{ e }` creates a function value whose expansion is the term `e` and
 >   pushes it on the stack. If $`\mathtt{e}: t`$, then
->   $`\mathtt{\lbrace e \rbrace} : \to t`$.
+>   $`\mathtt{\lbrace e \rbrace} : {} \to t`$.
 > - `-> x;` pops the value on top of the stack and binds it to a name in
 >   the enclosing scope. The type of this expression is
->   $`\mathord{\mathrm{'a}} \to`$, where $`\mathord{\mathrm{'a}}`$ is a
->   fresh type variable.
+>   $`\mathord{\mathrm{'a}} \to {}`$, where $`\mathord{\mathrm{'a}}`$ is
+>   a fresh type variable.
 > - `-> \x;` pops the value on top of the stack and binds it to a name
 >   in the enclosing scope. The name binds to a function of maximally
 >   general type $`(\mathord{\mathrm{'A}} \to \mathord{\mathrm{'B}})`$
 >   (see [row polymorphism](#row-polymorphic-types)). The type of this
 >   expression is therefore
->   $`(\mathord{\mathrm{'A}} \to \mathord{\mathrm{'B}}) \to`$.
+>   $`(\mathord{\mathrm{'A}} \to \mathord{\mathrm{'B}}) \to {}`$.
 > - `id` resolves a name in the enclosing scope. Names resolve to a
 >   *value*, a value having a data type, not a stack type.
 >   - If `id` refers to a function of type $`\mathbf{c}\to\mathbf{p}`$,
@@ -189,9 +189,9 @@ in the following section.
 >     builtin, then that function is applied to the stack. The
 >     expression has stack type $`\mathbf{c}\to\mathbf{p}`$.
 >   - If `id` otherwise refers to a value of type $`t`$, then that value
->     is pushed to the stack. The expression has stack type $`\to t`$.
->     Note that for this rule to apply the name must have been declared
->     with `-> id;`.
+>     is pushed to the stack. The expression has stack type
+>     $`{} \to t`$. Note that for this rule to apply the name must have
+>     been declared with `-> id;`.
 >   - If `id` does not refer to a name in scope, the expression is not
 >     well-typed and a compile-time error occurs.
 > - `e1 e2` evaluates `e1`, then evaluates `e2`. In more abstract terms,

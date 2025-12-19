@@ -134,13 +134,13 @@ Type inference is performed while type-checking expressions as explained in the 
 
 ### Typing and evaluation
 
-> - `{ e }` creates a function value whose expansion is the term `e` and pushes it on the stack. If $\mathtt{e}: t$, then $\mathtt{\lbrace e \rbrace} : \to t$.
-> - `-> x;` pops the value on top of the stack and binds it to a name in the enclosing scope. The type of this expression is $\tvar{a} \to$, where $\tvar{a}$ is a fresh type variable.
+> - `{ e }` creates a function value whose expansion is the term `e` and pushes it on the stack. If $\mathtt{e}: t$, then $\mathtt{\lbrace e \rbrace} : {} \to t$.
+> - `-> x;` pops the value on top of the stack and binds it to a name in the enclosing scope. The type of this expression is $\tvar{a} \to {}$, where $\tvar{a}$ is a fresh type variable.
 > - `-> \x;` pops the value on top of the stack and binds it to a name in the enclosing scope.
-> The name binds to a function of maximally general type $(\tvar{A} \to \tvar{B})$ (see [row polymorphism](#row-polymorphic-types)). The type of this expression is therefore $(\tvar{A} \to \tvar{B}) \to$.
+> The name binds to a function of maximally general type $(\tvar{A} \to \tvar{B})$ (see [row polymorphism](#row-polymorphic-types)). The type of this expression is therefore $(\tvar{A} \to \tvar{B}) \to {}$.
 > - `id` resolves a name in the enclosing scope. Names resolve to a *value*, a value having a data type, not a stack type.
 >   - If `id` refers to a function of type $\mathbf{c}\to\mathbf{p}$, which was declared either with `-> \id;` or `let id ...`, or is a builtin, then that function is applied to the stack. The expression has stack type $\mathbf{c}\to\mathbf{p}$.
->   - If `id` otherwise refers to a value of type $t$, then that value is pushed to the stack. The expression has stack type $\to t$.  Note that for this rule to apply the name must have been declared with `-> id;`.
+>   - If `id` otherwise refers to a value of type $t$, then that value is pushed to the stack. The expression has stack type ${} \to t$.  Note that for this rule to apply the name must have been declared with `-> id;`.
 >   - If `id` does not refer to a name in scope, the expression is not well-typed and a compile-time error occurs.
 > - `e1 e2` evaluates `e1`, then evaluates `e2`. In more abstract terms, this denotes the *composition* of both stack functions.
 
