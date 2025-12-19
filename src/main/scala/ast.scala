@@ -98,7 +98,7 @@ package ast {
   object StackValueId {
     def unapply(a: StackValueId): Option[(String, Boolean, FilePos)] = a match
       case s: StackValueId => Some((s.sourceName, s.isFunction, s.filePos))
-      case _ => None
+      case null => None
   }
 
   object FuncId {
@@ -214,10 +214,10 @@ package ast {
 
     private def ifelse: Parser[KExpr] =
       (IF() ~ parexpr.? ~ (expr ^^ Quote.apply)
-        ~ rep(ELIF() ~ parexpr ~ (expr ^^ Quote.apply))
+        ~ (ELIF() ~ parexpr ~ (expr ^^ Quote.apply)).*
         ~ (ELSE ~> expr ^^ Quote.apply)
         ) ^^ {
-        case (ifTok: IF) ~ (cond: Option[KExpr]) ~ (thenThunk: Quote) ~ (elifs: List[ELIF ~ KExpr ~ Quote]) ~ (elseThunk: Quote) =>
+        case (ifTok: IF) ~ (cond: Option[KExpr]) ~ (thenThunk: Quote) ~ (elifs: List[ELIF ~ KExpr ~ Quote] ) ~ (elseThunk: Quote) => {
           def makeIf(thenThunk: Quote, elseThunk: Quote, position: Position): KExpr = {
             val ifFunction = Chain(FunApply("cond").setPos(position), FunApply("apply").setPos(position)).setPos(position)
             Chain(Chain(thenThunk, elseThunk).setPos(position), ifFunction).setPos(position)
@@ -229,6 +229,8 @@ package ast {
           val ifelse = makeIf(thenThunk, foldedElseIf, ifTok.pos)
 
           cond.map(c => Chain(c, ifelse)).getOrElse(ifelse)
+        }
+        case _ => throw AssertionError("unreachable")
       }
 
     private def primary: Parser[KExpr] =
@@ -255,17 +257,22 @@ package ast {
         case arrow ~ decls => NameTopN(decls.map(toStackId)).setPos(arrow.pos)
       }
 
-    private def unary: Parser[KExpr] =
-      (OP("-") | OP("+") | OP("~") | OP("!")).? ~ primary ^^ {
+    private def unary: Parser[KExpr] = {
+      val unaryop = OP("-") | OP("+") | OP("~") | OP("!")
+
+      unaryop.? ~ primary ^^ {
         case Some(op: OP) ~ e => Chain(e, FunApply("unary_" + op.opName).setPos(op.pos))
         case None ~ e => e
+        case _ => throw AssertionError("unreachable")
       }
+    }
 
     private def makeBinary(lowerPrecParser: Parser[KExpr],
                            opParser: Parser[KToken]): Parser[KExpr] =
       lowerPrecParser ~ rep(opParser ~ lowerPrecParser) ^^ {
         case e1 ~ list => list.foldLeft(e1) {
           case (a, (op: OP) ~ b) => Chain(Chain(a, b), FunApply(op.opName).setPos(op.pos)).setPos(op.pos)
+          case _ => throw AssertionError("unreachable")
         }
       }
 
@@ -323,6 +330,7 @@ package ast {
         case Success(result, input) =>
           if (input.atEnd) Right(result)
           else Left(SigiParseError(s"Unparsed tokens: ${source.substring(math.max(0, input.pos.column - 1))}", input.pos))
+        case _ => throw AssertionError("unreachable")
       }
     }
 
