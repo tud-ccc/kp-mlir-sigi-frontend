@@ -153,8 +153,13 @@ case class MlirSymbol(name: String) {
 
       println("")
       println(s"// ${id.sourceName}: $ty")
-      val attrs = if isMain then " attributes {sigi.main}" else ""
-      println(s"func.func$visibility $funSym(${envIdGen.cur}: !sigi.stack) -> !sigi.stack$attrs {")
+      val attrs = ListBuffer[String]()
+      attrs += stackTypeToMlirAttr(funDef.ty)
+      if (isMain) {
+        attrs += "sigi.main"
+      }
+
+      println(s"func.func$visibility $funSym(${envIdGen.cur}: !sigi.stack) -> !sigi.stack attributes {${attrs.mkString(", ")}} {")
       indent += 1
       this.emitExpr(body)
       println(s"return ${envIdGen.cur}: !sigi.stack")
@@ -175,6 +180,16 @@ case class MlirSymbol(name: String) {
     private def typeToStr(t: String | KStackTypeItem) = t match
       case s: String => s
       case t: KStackTypeItem => mlirType(t)
+
+
+    private def stackTypeToMlirAttr(t: StackType) =
+      s"sigi.stackType = (${t.consumes.map(typeToStr).mkString(", ")}) -> " + (
+        if (t.produces.size == 1) typeToStr(t.produces.head)
+        else t.produces.map(typeToStr).mkString("(", ", ", ")")
+        )
+
+    private def stackTypeToMlirAttrDict(t: StackType) =
+      "{ " + stackTypeToMlirAttr(t) + " }"
 
     private def renderPush(ty: KStackTypeItem | String,
                            inVal: MlirIdent,
@@ -262,7 +277,7 @@ case class MlirSymbol(name: String) {
         case TFunApply(ty, binding@StackValueId(name, true, _)) =>
           localSymEnv.get(binding) match
             case Some(LocalSymDesc(_, mlirId, _)) =>
-              println(s"${envIdGen.next()} = closure.call $mlirId ($envId) : $ClosureT // call $name: $ty")
+              println(s"${envIdGen.next()} = closure.call $mlirId ($envId) ${stackTypeToMlirAttrDict(ty)} : $ClosureT // call $name: $ty")
             case None => throw IllegalStateException(s"Unknown stack symbol: $binding")
 
         // builtin binary arithmetic ops and comparisons
@@ -329,7 +344,7 @@ case class MlirSymbol(name: String) {
 
           val funSym = MlirSymbol(nameDeduper.getMlirName(id))
           val resultEnv = envIdGen.next()
-          println(s"$resultEnv = func.call $funSym($envId) : $TargetFunType // $ty")
+          println(s"$resultEnv = func.call $funSym($envId) ${stackTypeToMlirAttrDict(ty)} : $TargetFunType // $ty")
 
         case TPushQuote(term) =>
 
@@ -351,7 +366,7 @@ case class MlirSymbol(name: String) {
 
           val cstId = valIdGen.next()
           val closureEnv = envIdGen.next()
-          println(s"$cstId = closure.box [$capturedArgsToString] ($closureEnv : !sigi.stack) -> !sigi.stack { // ${term.stackTy}")
+          println(s"$cstId = closure.box [$capturedArgsToString] ($closureEnv : !sigi.stack) -> !sigi.stack attributes ${stackTypeToMlirAttrDict(term.stackTy)} { // ${term.stackTy}")
           indent += 1
           emitExpr(term)
           println(s"closure.return ${envIdGen.cur}: !sigi.stack")

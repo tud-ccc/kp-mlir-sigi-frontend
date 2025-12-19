@@ -53,4 +53,6 @@ installRequirementsWithSdkman:
     # get native image
     gu install native-image
 
+panDoc:
+    pandoc docs/SigiLang.pandoc.md --lua-filter=docs/expand-tvar.lua -t gfm -o SigiLang.md
 
